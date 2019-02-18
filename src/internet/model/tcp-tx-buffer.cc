@@ -648,6 +648,29 @@ TcpTxBuffer::RemoveFromCounts (TcpTxItem *item, uint32_t size)
       m_lostOut -= size;
     }
 }
+
+void
+TcpTxBuffer::GetPacketInfo (SequenceNumber32 ack, TcpTxItem *item)
+{
+  NS_LOG_FUNCTION (this);
+  uint32_t pktSize;
+
+  for (auto it = m_sentList.begin (); it != m_sentList.end (); ++it)
+     {
+       TcpTxItem *packet = *it;
+       Ptr<Packet> p = packet->m_packet;
+       pktSize = p->GetSize ();
+
+       // Find out the recent most packet acknowldged
+       if ((packet->m_startSeq == ack && packet->m_sacked) || packet->m_startSeq + pktSize == ack)
+         {
+           *item = *packet;
+           return;
+         }
+     }
+  return;
+}
+
 void
 TcpTxBuffer::DiscardUpTo (const SequenceNumber32& seq)
 {
@@ -765,6 +788,12 @@ TcpTxBuffer::Update (const TcpOptionSack::SackList &list)
   NS_LOG_INFO ("Updating scoreboard, got " << list.size () << " blocks to analyze");
 
   bool modified = false;
+
+  if (m_sentList.size () == 0)
+    {
+       // Possibly a DSACK with no packets to SACK
+       return false;
+    }
 
   for (auto option_it = list.begin (); option_it != list.end (); ++option_it)
     {
@@ -895,6 +924,58 @@ TcpTxBuffer::UpdateLostCount ()
     }
   NS_LOG_INFO ("Status after the update: " << *this);
   ConsistencyCheck ();
+}
+
+void
+TcpTxBuffer::DetectRackLoss (Ptr<TcpRack> rack, double *timeout)
+{
+  NS_LOG_FUNCTION (this);
+
+  for (auto it = m_sentList.begin (); it != m_sentList.end(); ++it)
+  {
+    TcpTxItem *item = *it;
+
+    if (item->m_sacked)
+      {
+        continue;
+      }
+
+    // Packet lost but not retransmitted
+    if ((item->m_lost && !item->m_retrans)) // Confirm this condition
+      {
+        continue;
+      }
+
+    else if (!rack->SentAfter (rack->GetXmitTs (), item->m_lastSent, rack->GetEndSeq (), item->m_startSeq.GetValue () +
+item->m_packet->GetSize ()))
+     {
+       break;
+     }
+
+    double remaining = item->m_lastSent.GetMilliSeconds () + rack->GetRtt ().GetMilliSeconds () + rack->GetReoWnd () - Simulator::Now ().GetMilliSeconds ();
+
+    if (remaining <= 0)
+      {
+        if (!item->m_lost)
+          {
+            item->m_lost = true;
+            m_lostOut += item->m_packet->GetSize ();
+          }
+        // Marking the retransmitted packets that are lost again
+        else if (item->m_retrans)
+               {
+                 item->m_retrans = false;
+                 m_retrans -= item->m_packet->GetSize ();
+               }
+      }
+    else
+      {
+        *timeout = std::max (remaining, *timeout);
+      }
+  }
+
+  ConsistencyCheck ();
+  return;
 }
 
 bool

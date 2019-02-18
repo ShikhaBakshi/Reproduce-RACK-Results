@@ -28,6 +28,7 @@
 #include "ns3/nstime.h"
 #include "ns3/tcp-option-sack.h"
 #include "ns3/packet.h"
+#include "ns3/tcp-rack.h"
 
 namespace ns3 {
 class Packet;
@@ -250,6 +251,14 @@ public:
   bool Add (Ptr<Packet> p);
 
   /**
+   * \brief Marks the expired packets as lost according to RACK
+   *
+   * \param rack is the pointer to the RACK objective
+   * \param timeout is the minimum timeout vaue for the packets to expire
+   */
+  void DetectRackLoss (Ptr<TcpRack> rack, double *timeout);
+
+  /**
    * \brief Returns the number of bytes from the buffer in the range [seq, tailSequence)
    *
    * \param seq initial sequence number
@@ -286,6 +295,20 @@ public:
    * \param seq The sequence number of the head byte
    */
   void SetHeadSequence (const SequenceNumber32& seq);
+
+  /**
+   * \brief Returns sequence number of the highest sacked packet
+   *
+   */
+  SequenceNumber32 GetHighestSacked () {return m_highestSack.second;}
+
+  /**
+   * \brief Returns the information of the latest packet acked
+   *
+   * \param ack ACK number received
+   * \param item: Pointer to the TcpTxItem of the packet
+   */
+  void GetPacketInfo (SequenceNumber32 ack, TcpTxItem *item);
 
   /**
    * \brief Discard data up to but not including this sequence number.

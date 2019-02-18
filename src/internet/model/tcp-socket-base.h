@@ -47,6 +47,7 @@ class RttEstimator;
 class TcpRxBuffer;
 class TcpTxBuffer;
 class TcpOption;
+class TcpRack;
 class Ipv4Interface;
 class Ipv6Interface;
 
@@ -568,6 +569,21 @@ public:
   typedef void (* TcpTxRxTracedCallback)(const Ptr<const Packet> packet, const TcpHeader& header,
                                          const Ptr<const TcpSocketBase> socket);
 
+  // Variables for FACK
+//  bool    m_fackEnabled       {false}; //!< FACK option disabled
+  uint32_t m_sndFack;                  //!< Sequence number of the forward most acknowledgement
+  uint32_t m_retranData;               //!< Number of outstanding retransmitted bytes
+
+  // Variables for DSACK
+//  bool             m_dsackEnabled {false}; //!< DSACK option disabled
+  bool             m_dsackSeen    {false}; //!< Check if DSACK is received
+  bool             m_isDsack      {false}; //!< Boolean variable to check if the Ack should contain a DSACK block
+  SequenceNumber32 m_dsackFirst;           //!< Sequence number of the first byte of DSACK block
+  SequenceNumber32 m_dsackSecond;          //!< Sequence number of the second byte of DSACK block
+
+  // Variable to check if packets are reordered
+  bool m_reorder                 {false};
+
 protected:
   // Implementing ns3::TcpSocket -- Attribute get/set
   // inherited, no need to doc
@@ -1006,6 +1022,11 @@ protected:
   void DupAck ();
 
   /**
+   * \brief RACK Loss Detection
+   */
+  void RackLoss ();
+
+  /**
    * \brief Enter the CA_RECOVERY, and retransmit the head
    */
   void EnterRecovery ();
@@ -1124,6 +1145,13 @@ protected:
    */
   void AddOptionSack (TcpHeader& header);
 
+  /**
+   * \brief Add the DSACK block to the header
+   *
+   * \param header TcpHeader where the method should add the option
+   */
+  void AddOptionDsack (TcpHeader& header);
+
   /** \brief Process the timestamp option from other side
    *
    * Get the timestamp and the echo, then save timestamp (which will
@@ -1236,6 +1264,9 @@ protected:
 
   // Options
   bool    m_sackEnabled       {true}; //!< RFC SACK option enabled
+  bool    m_fackEnabled       {false}; //!< FACK option enabled
+  bool    m_dsackEnabled      {false}; //!< DSACK option enabled
+  bool    m_rackEnabled       {false}; //!< RACK option enabled
   bool    m_winScalingEnabled {true}; //!< Window Scale option enabled (RFC 7323)
   uint8_t m_rcvWindShift      {0};    //!< Window shift to apply to outgoing segments
   uint8_t m_sndWindShift      {0};    //!< Window shift to apply to incoming segments
@@ -1253,6 +1284,9 @@ protected:
   Ptr<TcpSocketState>    m_tcb;               //!< Congestion control information
   Ptr<TcpCongestionOps>  m_congestionControl; //!< Congestion control
   Ptr<TcpRecoveryOps>    m_recoveryOps;       //!< Recovery Algorithm
+
+  // RACK related variables
+  Ptr<TcpRack>           m_rack;
 
   // Guesses over the other connection end
   bool m_isFirstPartialAck {true}; //!< First partial ACK during RECOVERY
