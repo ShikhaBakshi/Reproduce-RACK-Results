@@ -33,12 +33,12 @@ On running this script two folders ```rack_on``` and ```rack-off``` will be crea
 
 Steps To generate CDF graphs:
 
-1. Each simulation result folder contains ```client-RTT``` files for all the five clients. We need to take the average of all the RTT columns (column 2) of all the 25 simulations for each client individually. <br>
-2. We do this for both RACK ON and RACK OFF cases.
-3. At the end we generate the CDF graphs with the data obtained by averaging the RTTs for each client in both the scenarios
+a. Each simulation result folder contains ```client-RTT``` files for all the five clients. We need to take the average of all the RTT columns (column 2) of all the 25 simulations for each client individually. <br>
+b. We do this for both RACK ON and RACK OFF cases.
+c. At the end we generate the CDF graphs with the data obtained by averaging the RTTs for each client in both the scenarios
 and overlap them.
 
-5 To generate the results of Test 1 and Test 2, run the below command:
+5. To generate the results of Test 1 and Test 2, run the below command:
 
 ```
 ./test.py --suite="tcp-rack-test"
