@@ -1,10 +1,10 @@
-# Reroduce Results of RACK in ns-3
+# Reproduce results of RACK
 
-This repository contains source code related to Recent Acknowledgment paper submitted to WNS3 2019
+This repository contains source code related to Recent Acknowledgment (RACK) paper published in the Proceedings of ACM WNS3 2019.
 
 ## Steps to reproduce results:
 
-1. Clone this Repo:
+1. Clone this repo:
 ```
 git clone https://github.com/ShikhaBakshi/Reproduce-RACK-Results
 ```
@@ -23,7 +23,7 @@ git clone https://github.com/ShikhaBakshi/Reproduce-RACK-Results
 On running this, a folder named ```"rack"``` will be created in the main ns-3 directory containing all the results.
 
 Results for Figure 5 in the paper will be generated in ```rack/no-reordering/rack/Traces``` <br>
-Results for Figure 5 in the paper will be generated in ```rack/no-reordering/no-rack/Traces``` <br>
+Results for Figure 6 in the paper will be generated in ```rack/no-reordering/no-rack/Traces``` <br>
 Results for Figure 7 and 8 in the paper will be generated in ```rack/reordering/no-rack/Traces```  and ```rack/reordering/rack/Traces```
 
 4. Run the script http.sh
@@ -43,4 +43,4 @@ and overlap them.
 ```
 ./test.py --suite="tcp-rack-test"
 ```
-It runs the two test cases mentioned in Test 1 in the paper and generates the trace files ```rack-on.plotme``` and ```rack-off.plotme``` corresponding to Figure 4 of the paper
+It runs both test cases described in the paper and generates the trace files ```rack-on.plotme``` and ```rack-off.plotme``` corresponding to Figure 4 of the paper.
