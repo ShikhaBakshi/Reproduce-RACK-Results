@@ -34,7 +34,7 @@ On running this script two folders ```rack_on``` and ```rack-off``` will be crea
 Steps To generate CDF graphs:
 
 a. Each simulation result folder contains ```client-RTT``` files for all the five clients. We need to take the average of all the RTT columns (column 2) of all the 25 simulations for each client individually. <br>
-b. We do this for both RACK ON and RACK OFF cases.
+b. We do this for both RACK ON and RACK OFF cases. <br>
 c. At the end we generate the CDF graphs with the data obtained by averaging the RTTs for each client in both the scenarios
 and overlap them.
 
